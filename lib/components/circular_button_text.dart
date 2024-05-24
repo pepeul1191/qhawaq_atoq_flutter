@@ -5,19 +5,20 @@ class CircularTextButton extends StatelessWidget {
   IconData icon;
   String text;
   VoidCallback callback;
+  bool enabled;
 
-  CircularTextButton({
-    required this.icon,
-    required this.text,
-    required this.callback,
-  });
+  CircularTextButton(
+      {required this.icon,
+      required this.text,
+      required this.callback,
+      required this.enabled});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         ElevatedButton(
-          onPressed: this.callback,
+          onPressed: enabled ? () => this.callback() : null,
           style: ElevatedButton.styleFrom(
             shape: CircleBorder(),
             padding: EdgeInsets.all(16.0),

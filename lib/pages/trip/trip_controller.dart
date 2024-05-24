@@ -10,6 +10,10 @@ class TripController extends GetxController {
   RxDouble longitude = (-76.5996417595332).obs;
   RxBool focused = false.obs;
   final Key mapKey = UniqueKey();
+  RxBool firstRecord = false.obs;
+  RxBool takePictureEnable = false.obs;
+  RxBool recordEnable = true.obs;
+  RxBool uploadEnable = false.obs;
 
   Future<void> getLocation(MapController mapController) async {
     try {
@@ -24,5 +28,29 @@ class TripController extends GetxController {
     } catch (e) {
       print('Error al obtener la ubicación: $e');
     }
+  }
+
+  void recordTrip() {
+    print('recordTrip');
+    // print(this.takePictureEnable.value); // false stop, true start
+    if (this.firstRecord.value == false) {
+      // only the first time
+      this.firstRecord.value = true;
+    }
+    this.takePictureEnable.value = !this.takePictureEnable.value;
+    this.uploadEnable.value = false;
+    if (this.firstRecord.value && !this.takePictureEnable.value) {
+      this.uploadEnable.value = true;
+    }
+  }
+
+  void takePicture() {
+    print('Controller dice... Tomar Foto');
+  }
+
+  void uploadTrip() {
+    print('Controller dice... Subir Recorrido');
+    this.firstRecord.value = false;
+    this.uploadEnable.value = false;
   }
 }

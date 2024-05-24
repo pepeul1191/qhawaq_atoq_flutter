@@ -80,24 +80,29 @@ class TripPage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              CircularTextButton(
+              Obx(() => CircularTextButton(
                   icon: Icons.camera_alt,
                   text: 'Tomar Foto',
-                  callback: () {
-                    // Acción del botón 1
-                  }),
-              CircularTextButton(
-                  icon: Icons.fiber_smart_record_sharp,
-                  text: 'Iniciar Recorrido',
-                  callback: () {
-                    // Acción del botón 2
-                  }),
-              CircularTextButton(
-                  icon: Icons.upload,
-                  text: 'Subir Datos',
-                  callback: () {
-                    // Acción del botón 3
-                  }),
+                  enabled: control.takePictureEnable.value,
+                  callback: () => this.control.takePicture())),
+              Obx(
+                () => CircularTextButton(
+                    icon: this.control.takePictureEnable.value
+                        ? Icons.stop
+                        : Icons.fiber_smart_record_sharp,
+                    text: this.control.takePictureEnable.value
+                        ? 'Detener Grabación'
+                        : 'Iniciar Recorrido',
+                    enabled: control.recordEnable.value,
+                    callback: () => this.control.recordTrip()),
+              ),
+              Obx(
+                () => CircularTextButton(
+                    icon: Icons.upload,
+                    text: 'Subir Datos',
+                    enabled: this.control.uploadEnable.value,
+                    callback: () => this.control.uploadTrip()),
+              ),
             ],
           ),
         ),
