@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import '../models/entities/member.dart';
 import '../configs/constants.dart';
 import 'package:http/http.dart' as http;

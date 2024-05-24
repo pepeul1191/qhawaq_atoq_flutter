@@ -66,6 +66,7 @@ class TripPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: TextField(
+            controller: control.txtName,
             decoration: InputDecoration(
               labelText: 'Nombre del Recorrido',
               border: OutlineInputBorder(),
@@ -84,7 +85,7 @@ class TripPage extends StatelessWidget {
                   icon: Icons.camera_alt,
                   text: 'Tomar Foto',
                   enabled: control.takePictureEnable.value,
-                  callback: () => this.control.takePicture())),
+                  callback: () => this.control.takePicture(context))),
               Obx(
                 () => CircularTextButton(
                     icon: this.control.takePictureEnable.value

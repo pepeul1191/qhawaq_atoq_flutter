@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../services/trip_service.dart';
 
 class TripController extends GetxController {
   Location location = Location();
@@ -14,6 +17,8 @@ class TripController extends GetxController {
   RxBool takePictureEnable = false.obs;
   RxBool recordEnable = true.obs;
   RxBool uploadEnable = false.obs;
+  TextEditingController txtName = TextEditingController();
+  RxList<File> images = <File>[].obs;
 
   Future<void> getLocation(MapController mapController) async {
     try {
@@ -44,8 +49,12 @@ class TripController extends GetxController {
     }
   }
 
-  void takePicture() {
-    // print('Controller dice... Tomar Foto');
+  void takePicture(BuildContext context) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      images.value.add(File(pickedFile.path));
+    }
   }
 
   void uploadTrip(BuildContext context) {
@@ -67,6 +76,8 @@ class TripController extends GetxController {
               child: Text('Grabar'),
               onPressed: () {
                 // Acción a realizar al aceptar
+                TripService service = TripService();
+                service.save(this.txtName.text.trim(), this.images);
                 Navigator.of(context).pop();
                 this.firstRecord.value = false;
                 this.uploadEnable.value = false;
