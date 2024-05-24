@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,7 @@ class TripController extends GetxController {
   RxBool uploadEnable = false.obs;
   TextEditingController txtName = TextEditingController();
   RxList<File> images = <File>[].obs;
+  Timer? timer;
 
   Future<void> getLocation(MapController mapController) async {
     try {
@@ -38,6 +40,7 @@ class TripController extends GetxController {
   void recordTrip() {
     // print('recordTrip');
     // print(this.takePictureEnable.value); // false stop, true start
+    // buttons
     if (this.firstRecord.value == false) {
       // only the first time
       this.firstRecord.value = true;
@@ -47,6 +50,12 @@ class TripController extends GetxController {
     if (this.firstRecord.value && !this.takePictureEnable.value) {
       this.uploadEnable.value = true;
     }
+    // timer
+    if (this.timer!.isActive) {
+      this.timer!.cancel();
+    } else {
+      startLocationUpdates();
+    }
   }
 
   void takePicture(BuildContext context) async {
@@ -55,6 +64,22 @@ class TripController extends GetxController {
     if (pickedFile != null) {
       images.value.add(File(pickedFile.path));
     }
+  }
+
+  void startLocationUpdates() async {
+    this.timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      try {
+        var currentLocationData = await location.getLocation();
+        print('getLocation');
+        print(currentLocationData.latitude);
+        print(currentLocationData.longitude);
+        latitude.value = currentLocationData.latitude!;
+        longitude.value = currentLocationData.longitude!;
+        focused.value = true;
+      } catch (e) {
+        print('Error al obtener la ubicación: $e');
+      }
+    });
   }
 
   void uploadTrip(BuildContext context) {
