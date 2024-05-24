@@ -31,7 +31,7 @@ class TripController extends GetxController {
   }
 
   void recordTrip() {
-    print('recordTrip');
+    // print('recordTrip');
     // print(this.takePictureEnable.value); // false stop, true start
     if (this.firstRecord.value == false) {
       // only the first time
@@ -45,12 +45,36 @@ class TripController extends GetxController {
   }
 
   void takePicture() {
-    print('Controller dice... Tomar Foto');
+    // print('Controller dice... Tomar Foto');
   }
 
-  void uploadTrip() {
-    print('Controller dice... Subir Recorrido');
-    this.firstRecord.value = false;
-    this.uploadEnable.value = false;
+  void uploadTrip(BuildContext context) {
+    // print('Controller dice... Subir Recorrido');
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Estamos a un paso de grabar el nuevo recorrido'),
+          content: Text('Si descide grabar el recorrido no podŕa retomarlo.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Grabar'),
+              onPressed: () {
+                // Acción a realizar al aceptar
+                Navigator.of(context).pop();
+                this.firstRecord.value = false;
+                this.uploadEnable.value = false;
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

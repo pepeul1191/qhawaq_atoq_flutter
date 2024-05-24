@@ -92,7 +92,10 @@ class TripPage extends StatelessWidget {
                         : Icons.fiber_smart_record_sharp,
                     text: this.control.takePictureEnable.value
                         ? 'Detener Grabación'
-                        : 'Iniciar Recorrido',
+                        : (this.control.firstRecord.value
+                                ? 'Retomar'
+                                : 'Iniciar') +
+                            ' Recorrido',
                     enabled: control.recordEnable.value,
                     callback: () => this.control.recordTrip()),
               ),
@@ -101,7 +104,7 @@ class TripPage extends StatelessWidget {
                     icon: Icons.upload,
                     text: 'Subir Datos',
                     enabled: this.control.uploadEnable.value,
-                    callback: () => this.control.uploadTrip()),
+                    callback: () => this.control.uploadTrip(context)),
               ),
             ],
           ),
