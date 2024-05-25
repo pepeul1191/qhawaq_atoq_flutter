@@ -6,9 +6,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:bson/bson.dart';
+import '../../models/entities/track.dart';
+import '../../repositories/track_repository.dart';
 import '../../services/trip_service.dart';
 
 class TripController extends GetxController {
+  ObjectId id = ObjectId();
   Location location = Location();
   RxDouble latitude = (-11.99107547525432).obs;
   RxDouble longitude = (-76.5996417595332).obs;
@@ -51,7 +55,7 @@ class TripController extends GetxController {
       this.uploadEnable.value = true;
     }
     // timer
-    if (this.timer!.isActive) {
+    if (this.timer != null && this.timer!.isActive) {
       this.timer!.cancel();
     } else {
       startLocationUpdates();
@@ -70,11 +74,26 @@ class TripController extends GetxController {
     this.timer = Timer.periodic(Duration(seconds: 2), (timer) async {
       try {
         var currentLocationData = await location.getLocation();
-        print('getLocation');
-        print(currentLocationData.latitude);
-        print(currentLocationData.longitude);
+        //print('getLocation');
+        //print(currentLocationData.latitude);
+        //print(currentLocationData.longitude);
         latitude.value = currentLocationData.latitude!;
         longitude.value = currentLocationData.longitude!;
+        final track = Track(
+          id: ObjectId(),
+          latitude: currentLocationData.latitude!,
+          longitude: currentLocationData.longitude!,
+          altitude: currentLocationData.altitude!,
+          created: DateTime.now(),
+        );
+        print(track);
+        TrackRepository trackRepository = TrackRepository();
+        try {
+          await trackRepository.insertTrack(track);
+          print('Track insertado correctamente.');
+        } catch (e) {
+          print('Error al insertar el track: $e');
+        }
         focused.value = true;
       } catch (e) {
         print('Error al obtener la ubicación: $e');
