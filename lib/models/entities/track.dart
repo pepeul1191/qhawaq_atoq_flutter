@@ -17,25 +17,44 @@ class Track {
 
   // Serialización de Track a Map
   Map<String, dynamic> toMap() {
+    // Verificar si algún campo es nulo y proporcionar un valor predeterminado en ese caso
     return {
-      'id': id.toHexString(),
-      'latitude': latitude,
-      'longitude': longitude,
-      'altitude': altitude,
-      'created': created.toIso8601String(),
+      '_id': id?.toHexString() ?? '', // Usar una cadena vacía si id es nulo
+      'latitude': latitude ?? 0.0, // Usar 0.0 si latitude es nulo
+      'longitude': longitude ?? 0.0, // Usar 0.0 si longitude es nulo
+      'altitude': altitude ?? 0.0, // Usar 0.0 si altitude es nulo
+      'created': created?.toIso8601String() ??
+          '', // Usar una cadena vacía si created es nulo
     };
   }
 
   // Deserialización de Map a Track
   factory Track.fromMap(Map<String, dynamic> map) {
+    String? id = map['_id'];
+    //print(map);
+    if (id == null) {
+      throw ArgumentError('El campo _id no puede ser null');
+    }
     return Track(
-      id: map['_id'],
-      latitude: map['latitude'],
-      longitude: map['longitude'],
-      altitude: map['altitude'],
-      created: DateTime.parse(map['created']),
+      id: ObjectId.fromHexString(id),
+      latitude: map['latitude'] ??
+          0.0, // Utilizar un valor predeterminado si latitude es null
+      longitude: map['longitude'] ??
+          0.0, // Utilizar un valor predeterminado si longitude es null
+      altitude: map['altitude'] ??
+          0.0, // Utilizar un valor predeterminado si altitude es null
+      created: DateTime.parse(
+          map['created'] ?? ''), // Utilizar una cadena vacía si created es null
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        "_id": id.toHexString(),
+        "latitude": latitude,
+        "longitude": longitude,
+        "altitude": altitude,
+        "created": created,
+      };
 
   @override
   String toString() {

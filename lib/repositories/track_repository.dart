@@ -31,4 +31,8 @@ class TrackRepository {
     final finder = Finder(filter: Filter.equals('id', id.toHexString()));
     await _trackStore.delete(await _db, finder: finder);
   }
+
+  Future<void> deleteAllTracks() async {
+    await _trackStore.delete(await _db);
+  }
 }

@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import '../models/entities/member.dart';
-import '../configs/constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:bson/bson.dart';
+import '../models/entities/track.dart';
+import '../configs/constants.dart';
 import '../configs/http_api_exception.dart';
 
 class TripService {
-  Future<void> save(String name, List<File> images) async {
+  Future<void> save(
+      ObjectId id, name, List<File> images, List<Track> tracks) async {
     String url = "${BASE_URL}trip/save";
     var request = http.MultipartRequest('POST', Uri.parse(url));
     for (var image in images) {
@@ -14,6 +16,10 @@ class TripService {
           .add(await http.MultipartFile.fromPath('images', image.path));
     }
     request.fields['name'] = name;
+    List<Map<String, dynamic>> serializedTracks =
+        tracks.map((track) => track.toMap()).toList();
+    request.fields['tracks'] = jsonEncode(serializedTracks);
+    request.fields['_id'] = id.toHexString();
     try {
       var response = await request.send();
       if (response.statusCode == 200) {

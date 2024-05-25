@@ -13,6 +13,7 @@ import '../../services/trip_service.dart';
 
 class TripController extends GetxController {
   ObjectId id = ObjectId();
+  TrackRepository trackRepository = TrackRepository();
   Location location = Location();
   RxDouble latitude = (-11.99107547525432).obs;
   RxDouble longitude = (-76.5996417595332).obs;
@@ -87,7 +88,6 @@ class TripController extends GetxController {
           created: DateTime.now(),
         );
         print(track);
-        TrackRepository trackRepository = TrackRepository();
         try {
           await trackRepository.insertTrack(track);
           print('Track insertado correctamente.');
@@ -118,13 +118,20 @@ class TripController extends GetxController {
             ),
             TextButton(
               child: Text('Grabar'),
-              onPressed: () {
+              onPressed: () async {
                 // Acción a realizar al aceptar
                 TripService service = TripService();
-                service.save(this.txtName.text.trim(), this.images);
+                service.save(
+                  this.id,
+                  this.txtName.text.trim(),
+                  this.images,
+                  await this.trackRepository.getTracks(),
+                );
                 Navigator.of(context).pop();
                 this.firstRecord.value = false;
                 this.uploadEnable.value = false;
+                this.id = ObjectId();
+                await this.trackRepository.deleteAllTracks();
               },
             ),
           ],
