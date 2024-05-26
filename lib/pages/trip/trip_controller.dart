@@ -11,14 +11,17 @@ import 'package:path/path.dart' as path;
 import '../../models/entities/track.dart';
 import '../../models/entities/picture.dart';
 import '../../repositories/track_repository.dart';
+import '../../repositories/picture_repository.dart';
 import '../../services/trip_service.dart';
 
 class TripController extends GetxController {
   ObjectId id = ObjectId();
   TrackRepository trackRepository = TrackRepository();
+  PictureRepository pictureRepository = PictureRepository();
   Location location = Location();
   RxDouble latitude = (-11.99107547525432).obs;
   RxDouble longitude = (-76.5996417595332).obs;
+  RxDouble altitude = (0.0).obs;
   RxBool focused = false.obs;
   final Key mapKey = UniqueKey();
   RxBool firstRecord = false.obs;
@@ -26,7 +29,7 @@ class TripController extends GetxController {
   RxBool recordEnable = true.obs;
   RxBool uploadEnable = false.obs;
   TextEditingController txtName = TextEditingController();
-  RxList<File> images = <File>[].obs;
+  RxList<File> tempImages = <File>[].obs;
   Timer? timer;
 
   Future<void> getLocation(MapController mapController) async {
@@ -37,6 +40,7 @@ class TripController extends GetxController {
       print(currentLocationData.longitude);
       latitude.value = currentLocationData.latitude!;
       longitude.value = currentLocationData.longitude!;
+      altitude.value = currentLocationData.altitude!;
       mapController.move(LatLng(latitude.value, longitude.value), 15.0);
       focused.value = true;
     } catch (e) {
@@ -69,7 +73,24 @@ class TripController extends GetxController {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
-      images.value.add(File(pickedFile.path));
+      File file = File(pickedFile.path);
+      tempImages.value.add(file);
+      String name = path.basename(file.path);
+      final picture = Picture(
+          id: ObjectId(),
+          latitude: latitude.value,
+          longitude: longitude.value,
+          altitude: altitude.value,
+          created: DateTime.now(),
+          url: '${this.id?.toHexString()}/${name}');
+      //print(picture);
+      try {
+        await pictureRepository.insert(picture);
+        print('Picture insertado correctamente.');
+      } catch (e) {
+        print('Error al insertar el picture: $e');
+      }
+      focused.value = true;
     }
   }
 
@@ -82,17 +103,17 @@ class TripController extends GetxController {
         //print(currentLocationData.longitude);
         latitude.value = currentLocationData.latitude!;
         longitude.value = currentLocationData.longitude!;
+        altitude.value = currentLocationData.altitude!;
         final track = Track(
           id: ObjectId(),
-          latitude: currentLocationData.latitude!,
-          longitude: currentLocationData.longitude!,
-          altitude: currentLocationData.altitude!,
+          latitude: latitude.value,
+          longitude: longitude.value,
+          altitude: altitude.value,
           created: DateTime.now(),
-          picture: null,
         );
         print(track);
         try {
-          await trackRepository.insertTrack(track);
+          await trackRepository.insert(track);
           print('Track insertado correctamente.');
         } catch (e) {
           print('Error al insertar el track: $e');
@@ -102,20 +123,6 @@ class TripController extends GetxController {
         print('Error al obtener la ubicación: $e');
       }
     });
-  }
-
-  Future<void> _embededPictureToTrack() async {
-    print('1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
-    for (File file in this.images.value) {
-      FileStat fileStat = await file.stat();
-      DateTime? created = fileStat.changed;
-      String name = path.basename(file.path);
-      Picture picture =
-          Picture(id: ObjectId(), url: '${this.id?.toHexString()}/${name}');
-      print('PRICTUREEEEEEEEEEEeee');
-      this.trackRepository.embededPicture(picture, created);
-    }
-    print('2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
   }
 
   void uploadTrip(BuildContext context) {
@@ -136,23 +143,24 @@ class TripController extends GetxController {
             TextButton(
               child: Text('Grabar'),
               onPressed: () async {
-                print('GRABARRRRRRRRRR 11111111');
-                await _embededPictureToTrack();
-                print('GRABARRRRRRRRRR 22222222');
                 TripService service = TripService();
-                List<Track> tracks = await this.trackRepository.getTracks();
+                List<Track> tracks = await this.trackRepository.fetchAll();
+                List<Picture> pictures =
+                    await this.pictureRepository.fecthAll();
                 service.save(
                   this.id,
                   this.txtName.text.trim(),
-                  this.images,
+                  this.tempImages,
                   tracks,
+                  pictures,
                 );
                 Navigator.of(context).pop();
                 this.firstRecord.value = false;
                 this.uploadEnable.value = false;
                 this.id = ObjectId();
-                await this.trackRepository.deleteAllTracks();
-                this.images.value.clear();
+                await this.trackRepository.deleteAll();
+                await this.pictureRepository.deleteAll();
+                this.tempImages.value.clear();
               },
             ),
           ],
