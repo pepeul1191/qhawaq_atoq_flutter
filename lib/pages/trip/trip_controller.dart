@@ -7,7 +7,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bson/bson.dart';
+import 'package:path/path.dart' as path;
 import '../../models/entities/track.dart';
+import '../../models/entities/picture.dart';
 import '../../repositories/track_repository.dart';
 import '../../services/trip_service.dart';
 
@@ -86,6 +88,7 @@ class TripController extends GetxController {
           longitude: currentLocationData.longitude!,
           altitude: currentLocationData.altitude!,
           created: DateTime.now(),
+          picture: null,
         );
         print(track);
         try {
@@ -99,6 +102,20 @@ class TripController extends GetxController {
         print('Error al obtener la ubicación: $e');
       }
     });
+  }
+
+  Future<void> _embededPictureToTrack() async {
+    print('1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    for (File file in this.images.value) {
+      FileStat fileStat = await file.stat();
+      DateTime? created = fileStat.changed;
+      String name = path.basename(file.path);
+      Picture picture =
+          Picture(id: ObjectId(), url: '${this.id?.toHexString()}/${name}');
+      print('PRICTUREEEEEEEEEEEeee');
+      this.trackRepository.embededPicture(picture, created);
+    }
+    print('2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
   }
 
   void uploadTrip(BuildContext context) {
@@ -119,19 +136,23 @@ class TripController extends GetxController {
             TextButton(
               child: Text('Grabar'),
               onPressed: () async {
-                // Acción a realizar al aceptar
+                print('GRABARRRRRRRRRR 11111111');
+                await _embededPictureToTrack();
+                print('GRABARRRRRRRRRR 22222222');
                 TripService service = TripService();
+                List<Track> tracks = await this.trackRepository.getTracks();
                 service.save(
                   this.id,
                   this.txtName.text.trim(),
                   this.images,
-                  await this.trackRepository.getTracks(),
+                  tracks,
                 );
                 Navigator.of(context).pop();
                 this.firstRecord.value = false;
                 this.uploadEnable.value = false;
                 this.id = ObjectId();
                 await this.trackRepository.deleteAllTracks();
+                this.images.value.clear();
               },
             ),
           ],

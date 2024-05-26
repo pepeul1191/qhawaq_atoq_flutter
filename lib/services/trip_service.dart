@@ -20,6 +20,8 @@ class TripService {
         tracks.map((track) => track.toMap()).toList();
     request.fields['tracks'] = jsonEncode(serializedTracks);
     request.fields['_id'] = id.toHexString();
+    print('SSERVICCEEEE');
+    print(jsonEncode(serializedTracks));
     try {
       var response = await request.send();
       if (response.statusCode == 200) {

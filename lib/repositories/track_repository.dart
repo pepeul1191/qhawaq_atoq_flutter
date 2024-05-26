@@ -1,6 +1,7 @@
 import 'package:sembast/sembast.dart';
 import 'package:bson/bson.dart';
 import '../models/entities/track.dart';
+import '../models/entities/picture.dart';
 import '../configs/app_database.dart';
 
 class TrackRepository {
@@ -34,5 +35,29 @@ class TrackRepository {
 
   Future<void> deleteAllTracks() async {
     await _trackStore.delete(await _db);
+  }
+
+  Future<void> embededPicture(Picture picture, DateTime created) async {
+    List<Track> tracksToUpdate = [];
+    // Encuentra todos los tracks en la base de datos
+    final tracks = await _trackStore.find(await _db, finder: Finder());
+    // Itera sobre los tracks y añade los que cumplan las condiciones a la lista tracksToUpdate
+    for (var snapshot in tracks) {
+      final track = Track.fromMap(snapshot.value);
+      if (created.microsecondsSinceEpoch >
+              track.created.microsecondsSinceEpoch &&
+          track.picture == null) {
+        track.picture = picture;
+        tracksToUpdate.add(track);
+        break; // Sale del bucle después de encontrar el primer track que cumpla las condiciones
+      }
+    }
+    // Actualiza los tracks que están en tracksToUpdate
+    for (var track in tracksToUpdate) {
+      print('Updating track with picture: ${track.toMap()}');
+      await _trackStore.update(await _db, track.toMap(),
+          finder: Finder(filter: Filter.equals('id', track.id)));
+      print('Track updated in the store.');
+    }
   }
 }
